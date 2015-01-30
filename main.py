@@ -8,68 +8,38 @@ import traceback
 import paramiko
 from paramiko.py3compat import b, u, decodebytes
 from Server import Server
+from Spatssh import Spatssh
+
+HOST = ''
+PORT = 2200
 
 # setup logging
 paramiko.util.log_to_file('paramiko-spatshh.log')
 
-host_key = paramiko.RSAKey(filename='test_rsa.key')
 #host_key = paramiko.DSSKey(filename='test_dss.key')
 
-print('Read key: ' + u(hexlify(host_key.get_fingerprint())))
 
 
-# DoGSSAPIKeyExchange = True
-DoGSSAPIKeyExchange = False
+spatssh = Spatssh()
 
-# now connect
-try:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind(('', 2200))
-except Exception as e:
-    print('*** Bind failed: ' + str(e))
-    traceback.print_exc()
-    sys.exit(1)
+# Socket init for the SSh communication
+spatssh.init_socket(HOST, PORT)
 
-try:
-    sock.listen(100)
-    print('Listening for connection ...')
-    client, addr = sock.accept()
-except Exception as e:
-    print('*** Listen/accept failed: ' + str(e))
-    traceback.print_exc()
-    sys.exit(1)
-
+# a mettre dans une boucle
+# waiting for the SSH client, return client socket
+client = spatssh.wait_client()
 print('Got a connection!')
 
+
 try:
-    t = paramiko.Transport(client, gss_kex=DoGSSAPIKeyExchange)
-    t.set_gss_host(socket.getfqdn(""))
-    try:
-        t.load_server_moduli()
-    except:
-        print('(Failed to load moduli -- gex will be unsupported.)')
-        raise
-    t.add_server_key(host_key)
-    server = Server()
-    try:
-        t.start_server(server=server)
-    except paramiko.SSHException:
-        print('*** SSH negotiation failed.')
+    chan = spatssh.auth_client(client)
+    if chan is not None:
+        print('Authenticated!')
+    else:
         sys.exit(1)
 
-    # wait for auth
-    chan = t.accept(20)
-    if chan is None:
-        print('*** No channel.')
-        sys.exit(1)
-    print('Authenticated!')
-
-    server.event.wait(10)
-    if not server.event.is_set():
-        print('*** Client never asked for a shell.')
-        sys.exit(1)
-
+    
+    #à remplacer par le choix du serveur final
     chan.send('\r\n\r\nWelcome to my dorky little BBS!\r\n\r\n')
     chan.send('We are on fire all the time!  Hooray!  Candy corn for everyone!\r\n')
     chan.send('Happy birthday to Robot Dave!\r\n\r\n')

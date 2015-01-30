@@ -3,6 +3,7 @@ import paramiko
 from binascii import hexlify
 from paramiko.py3compat import b, u, decodebytes
 
+# the server class is managing the SSH connection and the user validation
 class Server (paramiko.ServerInterface):
     # 'data' is the output of base64.encodestring(str(key))
     # (using the "user_rsa_key" files)
@@ -21,6 +22,7 @@ class Server (paramiko.ServerInterface):
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def check_auth_password(self, username, password):
+        # a changer avec un fichier de config
         if (username == 'robey') and (password == 'foo'):
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
@@ -74,4 +76,3 @@ class Server (paramiko.ServerInterface):
     def check_channel_pty_request(self, channel, term, width, height, pixelwidth,
                                   pixelheight, modes):
         return True
-
