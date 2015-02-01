@@ -17,7 +17,7 @@ except ImportError:
 
 class Client:
 
-    def __init__(self, hostname="127.0.0.1", port=22, username="spatssh"):
+    def __init__(self, hostname="127.0.0.1", port=2200, username="spatssh"):
         self.hostname = hostname
         self.port = port
         self.username = username
@@ -82,7 +82,7 @@ class Client:
         except Exception as e:
             print('*** Connect failed: ' + str(e))
             traceback.print_exc()
-            sys.exit(1)
+            raise
 
         try:
             self.t = paramiko.Transport(sock)
@@ -93,7 +93,7 @@ class Client:
                 self.t.close()
             except:
                 pass
-            sys.exit(1)
+            raise
 
     def launch(self):
 
@@ -104,7 +104,7 @@ class Client:
                 self.t.start_client()
             except paramiko.SSHException:
                 print('*** SSH negotiation failed.')
-                sys.exit(1)
+                raise
 
             try:
                 keys = paramiko.util.load_host_keys(os.path.expanduser('~/.ssh/known_hosts'))
@@ -123,7 +123,7 @@ class Client:
                 print('*** WARNING: Unknown host key!')
             elif keys[self.hostname][key.get_name()] != key:
                 print('*** WARNING: Host key has changed!!!')
-                sys.exit(1)
+                raise
             else:
                 print('*** Host key OK.')
 
@@ -140,12 +140,13 @@ class Client:
             if not self.t.is_authenticated():
                 print('*** Authentication failed. :(')
                 self.t.close()
-                sys.exit(1)
+                raise
 
             chan = self.t.open_session()
             chan.get_pty()
             chan.invoke_shell()
             print('*** Here we go!\n')
+            # soit on push dans ce chan, soit on remplace interactive shell par un bridge char by char
             interactive.interactive_shell(chan)
             chan.close()
             self.t.close()
@@ -157,6 +158,6 @@ class Client:
                 self.t.close()
             except:
                 pass
-            sys.exit(1)
+            raise
 
 

@@ -2,6 +2,7 @@ import threading
 import paramiko
 from binascii import hexlify
 from paramiko.py3compat import b, u, decodebytes
+import config
 
 # the server class is managing the SSH connection and the user validation
 class Server (paramiko.ServerInterface):
@@ -12,9 +13,11 @@ class Server (paramiko.ServerInterface):
             b'KDqIexkgHAfID/6mqvmnSJf0b5W8v5h2pI/stOSwTQ+pxVhwJ9ctYDhRSlF0iT'
             b'UWT10hcuO4Ks8=')
     good_pub_key = paramiko.RSAKey(data=decodebytes(data))
+    bridge = None
 
-    def __init__(self):
+    def __init__(self, bridge):
         self.event = threading.Event()
+        self.bridge = bridge
 
     def check_channel_request(self, kind, chanid):
         if kind == 'session':
@@ -22,14 +25,16 @@ class Server (paramiko.ServerInterface):
         return paramiko.OPEN_FAILED_ADMINISTRATIVELY_PROHIBITED
 
     def check_auth_password(self, username, password):
-        # a changer avec un fichier de config
-        if (username == 'robey') and (password == 'foo'):
+        print('Auth attempt with username: ' + username + '   and password : ' + password)
+        if username in config.users and config.users[username] == password:
+            self.bridge.username = username
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 
     def check_auth_publickey(self, username, key):
         print('Auth attempt with key: ' + u(hexlify(key.get_fingerprint())))
-        if (username == 'robey') and (key == self.good_pub_key):
+        if (username == 'spatssh') and (key == self.good_pub_key):
+            self.bridge.username = username
             return paramiko.AUTH_SUCCESSFUL
         return paramiko.AUTH_FAILED
 

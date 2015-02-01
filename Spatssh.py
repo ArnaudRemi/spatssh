@@ -8,18 +8,20 @@ import traceback
 import paramiko
 from paramiko.py3compat import b, u, decodebytes
 from Server import Server
+from Bridge import Bridge
 
 
 class Spatssh:
 
     # DoGSSAPIKeyExchange = True
     DoGSSAPIKeyExchange = False
+    sock = None
+    server = None
+    transport = None
 
     def __init__(self):
         self.host_key = paramiko.RSAKey(filename='test_rsa.key')
         print('Read key: ' + u(hexlify(self.host_key.get_fingerprint())))
-        self.sock = None
-        self.server = None
         self.max_client = 100
 
     def accept_gss(self, accept):
@@ -33,7 +35,7 @@ class Spatssh:
         except Exception as e:
             print('*** Bind failed: ' + str(e))
             traceback.print_exc()
-            sys.exit(1)
+            raise
 
     def wait_client(self):
         try:
@@ -48,37 +50,44 @@ class Spatssh:
 
     def auth_client(self, client):
         try:
-            t = paramiko.Transport(client, gss_kex=self.DoGSSAPIKeyExchange)
-            t.set_gss_host(socket.getfqdn(""))
+            self.transport = paramiko.Transport(client, gss_kex=self.DoGSSAPIKeyExchange)
+            self.transport.set_gss_host(socket.getfqdn(""))
             try:
-                t.load_server_moduli()
+                self.transport.load_server_moduli()
             except:
                 print('(Failed to load moduli -- gex will be unsupported.)')
                 raise
-            t.add_server_key(self.host_key)
-            self.server = Server()
+            bridge = Bridge()
+            self.transport.add_server_key(self.host_key)
+            self.server = Server(bridge)
             try:
-                t.start_server(server=self.server)
+                self.transport.start_server(server=self.server)
             except paramiko.SSHException:
                 print('*** SSH negotiation failed.')
                 return None
 
             # wait for auth
-            chan = t.accept(20)
+            chan = self.transport.accept(20)
             if chan is None:
                 print('*** No channel.')
                 return None
+            bridge.chan = chan
 
+            # wait the client ask for a shell
             self.server.event.wait(10)
             if not self.server.event.is_set():
                 print('*** Client never asked for a shell.')
                 return None
-            return chan
+            return bridge
+
         except Exception as e:
             print('*** Caught exception: ' + str(e.__class__) + ': ' + str(e))
             traceback.print_exc()
             try:
-                t.close()
+                self.transport.close()
             except:
                 pass
             return None
+
+    def close_spatshh(self):
+        self.transport.close()
