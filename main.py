@@ -4,6 +4,7 @@ import os
 import socket
 import sys
 import traceback
+import thread
 
 import paramiko
 from paramiko.py3compat import b, u, decodebytes
@@ -35,12 +36,12 @@ try:
     bridge = spatssh.auth_client(client)
     if bridge is not None:
         print('Authenticated!')
+        bridge.discuss_with_client()
+        bridge.shutdown_connection()
     else:
         # close connection and socket
         # stop the thread
-        sys.exit(1)
-    bridge.discuss_with_client()
-    bridge.shutdown_connection()
+        thread.exit()
 
 except Exception as e:
     print('*** Caught exception: ' + str(e.__class__) + ': ' + str(e))

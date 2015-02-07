@@ -3,7 +3,8 @@
 # "username": "password"
 users = {'foo': 'bar',
          'root': 'toor',
-         'tutu': 'toto'}
+         'tutu': 'toto',
+         'remi': 'coucou'}
 
 # "servername": ("ip", port)
 servers = {"sshPort22": ("127.0.0.1", 22),
