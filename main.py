@@ -4,7 +4,7 @@ import os
 import socket
 import sys
 import traceback
-import thread
+import _thread
 
 import paramiko
 from paramiko.py3compat import b, u, decodebytes
@@ -13,6 +13,19 @@ from Spatssh import Spatssh
 
 HOST = ''
 PORT = 2200
+
+
+def thread_it(client):
+    try:
+        bridge = spatssh.auth_client(client)
+        if bridge is not None:
+            print('Authenticated!')
+            bridge.discuss_with_client()
+            bridge.shutdown_connection()
+    except Exception as e:
+        print('*** Caught exception: ' + str(e.__class__) + ': ' + str(e))
+        traceback.print_exc()
+
 
 # setup logging
 paramiko.util.log_to_file('paramiko-spatshh.log')
@@ -25,24 +38,13 @@ spatssh = Spatssh()
 spatssh.init_socket(HOST, PORT)
 
 # a mettre dans une boucle
-# waiting for the SSH client, return client socket
-client = spatssh.wait_client()
-print('Got a connection!')
-# if client is None:
-    # break
+while True:
+    # waiting for the SSH client, return client socket
+    client = spatssh.wait_client()
+    print('Got a connection!')
+    if client is None:
+        pass
 
-# lancer un thread
-try:
-    bridge = spatssh.auth_client(client)
-    if bridge is not None:
-        print('Authenticated!')
-        bridge.discuss_with_client()
-        bridge.shutdown_connection()
-    else:
-        # close connection and socket
-        # stop the thread
-        thread.exit()
-
-except Exception as e:
-    print('*** Caught exception: ' + str(e.__class__) + ': ' + str(e))
-    traceback.print_exc()
+    # lancer un thread
+    _thread.start_new_thread(thread_it, (client,))
+    #thread_it()
