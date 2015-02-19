@@ -1,3 +1,5 @@
+#! /usr/local/bin/python3.4
+
 import base64
 from binascii import hexlify
 import os
@@ -28,7 +30,7 @@ def thread_it(client):
 
 
 # setup logging
-paramiko.util.log_to_file('paramiko-spatshh.log')
+paramiko.util.log_to_file('/var/log/paramiko-spatssh.log')
 
 # host_key = paramiko.DSSKey(filename='test_dss.key')
 

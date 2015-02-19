@@ -1,0 +1,9 @@
+Package: spatssh
+Version: 0.1
+Section: base
+Priority: optional
+Architecture: all
+Depends: bash
+Maintainer: arnaud_r<arnaud_r@epitech.eu>
+Description: SSH Server
+Homepage: https://github.com/ArnaudRemi/spatssh
