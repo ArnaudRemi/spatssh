@@ -7,5 +7,6 @@ users = {'foo': 'bar',
          'remi': 'coucou'}
 
 # "servername": ("ip", port)
-servers = {"sshPort22": ("127.0.0.1", 22),
-           "sshPort2200": ("127.0.0.1", 2200)}
+servers = {"Debian7_1": ("172.16.134.128", 22),
+           "localhost": ("127.0.0.1", 22),
+           "Debian7_2": ("172.16.134.202", 22)}

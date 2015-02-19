@@ -20,7 +20,7 @@ class Spatssh:
     transport = None
 
     def __init__(self):
-        self.host_key = paramiko.RSAKey(filename='/etc/spatssh/test_rsa.key')
+        self.host_key = paramiko.RSAKey(filename='/etc/spatssh/id_rsa')
         print('Read key: ' + u(hexlify(self.host_key.get_fingerprint())))
         self.max_client = 100
 

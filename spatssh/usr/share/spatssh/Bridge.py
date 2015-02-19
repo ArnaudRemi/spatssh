@@ -22,7 +22,7 @@ class Bridge:
             self.chan.send('Chose the server between: ')
             for sname in config.servers.keys():
                 self.chan.send(sname + " ")
-            self.chan.send('\r\n')
+            self.chan.send('(empty to leave)\r\n')
             self.fchan = self.chan.makefile('rU')
             servername = self.fchan.readline().strip('\r\n')
             if servername == "":
