@@ -9,3 +9,9 @@ sudo dpkg --install spatssh.deb //to install spatssh like standart program and s
 sudo update-rc.d spatssh defaults //to enable spatssh service on startup.
 
 sudo update-rc.d -f spatssh remove //to disable spatssh service on startup.
+
+## Files :
+
+test_rsa.key is in /etc/spatssh
+
+paramiko-spatssh.log is in /var/log
