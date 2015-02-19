@@ -28,7 +28,9 @@ def thread_it(client):
         print('*** Caught exception: ' + str(e.__class__) + ': ' + str(e))
         traceback.print_exc()
 
-
+f = open('/var/run/spatssh.pid', 'w')
+f.write(str(os.getpid()))
+f.close()
 # setup logging
 paramiko.util.log_to_file('/var/log/paramiko-spatssh.log')
 
